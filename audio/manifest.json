@@ -1,0 +1,97 @@
+{
+  "model": "eleven_v3",
+  "characters": 1193,
+  "lines": {
+    "intro": {
+      "file": "audio/intro.mp3",
+      "label": "Welcome",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Good afternoon, and welcome to the White Cube Mini Golf Open, twenty twenty-six! The putters are polished, the plinths are in position... and the tension is absolutely palpable.",
+      "duration": 12.64
+    },
+    "report_in": {
+      "file": "audio/report_in.mp3",
+      "label": "Over to the scores",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Right then. Let's have a look at how it all unfolded.",
+      "duration": 3.12
+    },
+    "ace": {
+      "file": "audio/ace.mp3",
+      "label": "Hole in one!",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "It's in! A hole in one! Unbelievable scenes here at the White Cube Open!",
+      "duration": 6.16
+    },
+    "new_leader": {
+      "file": "audio/new_leader.mp3",
+      "label": "New leader",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "And we have a new leader at the top of the board!",
+      "duration": 3.2
+    },
+    "spoon": {
+      "file": "audio/spoon.mp3",
+      "label": "Wooden spoon",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "And spare a thought for our wooden spoon winners. It's the taking part that counts. Apparently.",
+      "duration": 6.72
+    },
+    "outro": {
+      "file": "audio/outro.mp3",
+      "label": "That's the round",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "And that's the round! What a day on the greens. From all of us here at the White Cube Mini Golf Open... goodnight, and mind the plinths.",
+      "duration": 10.0
+    },
+    "r_gasp": {
+      "file": "audio/r_gasp.mp3",
+      "label": "Did you see that?!",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Did you see that?!",
+      "duration": 1.68
+    },
+    "r_lipout": {
+      "file": "audio/r_lipout.mp3",
+      "label": "Lip-out",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Ohhh, a cruel lip-out. They'll be thinking about that one all evening.",
+      "duration": 6.0
+    },
+    "r_pressure": {
+      "file": "audio/r_pressure.mp3",
+      "label": "Pressure putt",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Pressure putt... for the lead... and it drops!",
+      "duration": 4.24
+    },
+    "r_magnificent": {
+      "file": "audio/r_magnificent.mp3",
+      "label": "Magnificent",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Absolutely magnificent. Put that one in the permanent collection.",
+      "duration": 5.36
+    },
+    "r_crowd": {
+      "file": "audio/r_crowd.mp3",
+      "label": "Listen to that crowd",
+      "voice": "QYrOVogqhHWUzdZFXf0E",
+      "text": "Listen to that crowd!",
+      "duration": 1.68
+    },
+    "n_intro": {
+      "file": "audio/n_intro.mp3",
+      "label": "Nature: intro",
+      "voice": "JBFqnCBsd6RMkjVDRZzb",
+      "text": "Here, on the manicured savannah of the mini golf course, the White Cube herd gathers. Putters in hand. Each one... quietly hoping to survive the windmill.",
+      "duration": 10.56
+    },
+    "n_outro": {
+      "file": "audio/n_outro.mp3",
+      "label": "Nature: outro",
+      "voice": "JBFqnCBsd6RMkjVDRZzb",
+      "text": "And as the light fades over the final green, the herd returns, at last, to the gallery. Nature... is extraordinary.",
+      "duration": 8.24
+    }
+  }
+}

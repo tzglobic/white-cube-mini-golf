@@ -1,0 +1,31 @@
+{
+  "team": "The Sfumatos",
+  "players": [
+    "Ada",
+    "Remi",
+    "Tilly"
+  ],
+  "pars": [
+    2,
+    3,
+    3,
+    4,
+    3,
+    2,
+    3,
+    3,
+    4
+  ],
+  "scores": [
+    3,
+    3,
+    3,
+    5,
+    2,
+    2,
+    3,
+    3,
+    4
+  ],
+  "notes": "Hole 4: a 6 was crossed out and corrected to 5."
+}

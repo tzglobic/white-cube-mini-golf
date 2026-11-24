@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en-GB" data-standalone>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Mini Golf Open 2026 · White Cube</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='white' stroke='black' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/wc.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="wc-header mg-header">
+    <a class="mg-brand" href="./" aria-label="White Cube Mini Golf Open 2026, home">
+      <span class="wc-wordmark">White Cube</span>
+      <span class="mg-event">Mini Golf Open 2026</span>
+    </a>
+    <nav id="nav" aria-label="Sections">
+      <a href="?view=setup" data-view="setup">Setup</a>
+      <a href="?view=scores" data-view="scores">Scores</a>
+      <a href="?view=photo" data-view="photo">Scorecard</a>
+      <a href="?view=board" data-view="board">Leaderboard</a>
+      <a href="?view=stats" data-view="stats">Stats</a>
+      <a href="?view=report" data-view="report">Report</a>
+    </nav>
+    <div class="mg-tools">
+      <button id="btn-qr" class="mg-tool" type="button"><span class="mg-qr-glyph" aria-hidden="true"></span>Phones</button>
+      <button id="btn-settings" class="mg-tool" type="button">Settings</button>
+    </div>
+  </header>
+
+  <main id="app" class="wc-page" tabindex="-1"></main>
+
+  <footer class="wc-footer mg-footer">
+    <span>White Cube &middot; Mini Golf Open &middot; 24 November 2026</span>
+    <span>Keys: B board &middot; S scores &middot; P scorecard &middot; T stats &middot; R report &middot; F fullscreen</span>
+  </footer>
+
+  <dialog id="settings" class="mg-dialog" aria-labelledby="set-title">
+    <form method="dialog">
+      <div class="wc-spread"><h2 id="set-title" class="wc-h2">Settings</h2><button class="mg-icon" value="close" aria-label="Close">&times;</button></div>
+      <p class="wc-small wc-mute">Keys are stored only in this browser (localStorage) and sent only to api.anthropic.com and api.elevenlabs.io. Without them the app runs fully offline in rehearsal mode.</p>
+
+      <fieldset>
+        <legend class="wc-eyebrow">Claude &middot; scorecard reading and match reports</legend>
+        <label class="mg-field"><span>Anthropic API key</span>
+          <input id="set-claude" class="wc-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
+        <label class="mg-field"><span>Model</span>
+          <select id="set-model" class="wc-input">
+            <option value="claude-opus-5-5">claude-opus-5-5 (default)</option>
+            <option value="claude-sonnet-5-5">claude-sonnet-5-5 (faster)</option>
+          </select></label>
+        <label class="mg-check"><input id="set-offline" type="checkbox"> Write match reports offline even with a key</label>
+        <button id="set-test-claude" class="wc-btn is-ghost" type="button">Test Claude</button>
+      </fieldset>
+
+      <fieldset>
+        <legend class="wc-eyebrow">ElevenLabs &middot; live commentator voice</legend>
+        <label class="mg-field"><span>ElevenLabs API key</span>
+          <input id="set-eleven" class="wc-input" type="password" autocomplete="off" spellcheck="false" placeholder="xi-…"></label>
+        <label class="mg-check"><input id="set-sound" type="checkbox"> Sound effects on the leaderboard (new leader, hole in one)</label>
+        <button id="set-test-eleven" class="wc-btn is-ghost" type="button">Test voice</button>
+      </fieldset>
+
+      <fieldset>
+        <legend class="wc-eyebrow">Phones</legend>
+        <label class="mg-field"><span>URL for the QR code</span>
+          <input id="set-qr" class="wc-input" type="url" autocomplete="off" spellcheck="false"></label>
+        <p class="wc-small wc-mute">Leave blank to use this page&rsquo;s address. Phones can&rsquo;t open &ldquo;localhost&rdquo;: use the laptop&rsquo;s network address, e.g. http://192.168.1.20:8424/04-mini-golf/</p>
+      </fieldset>
+
+      <p id="set-status" class="mg-set-status" role="status" aria-live="polite"></p>
+      <div class="wc-row mg-gap-s">
+        <button class="wc-btn" value="close">Done</button>
+        <button id="set-show" class="wc-btn is-ghost" type="button">Show keys</button>
+        <button id="set-forget" class="wc-btn is-ghost mg-danger" type="button">Forget keys</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="qr" class="mg-dialog mg-qr-dialog" aria-labelledby="qr-title">
+    <form method="dialog">
+      <div class="wc-spread"><h2 id="qr-title" class="wc-h2">Score on your phone</h2><button class="mg-icon" value="close" aria-label="Close">&times;</button></div>
+      <div id="qr-code" class="mg-qr"></div>
+      <label class="mg-check"><input id="qr-include" type="checkbox" checked> Include the teams and course, so phones open ready to score</label>
+      <p id="qr-url" class="wc-mono mg-qr-url"></p>
+      <p id="qr-warn" class="mg-warn" hidden>This is a localhost address, which phones can&rsquo;t reach. Serve on the network (see README) and set the laptop&rsquo;s address in <button id="qr-settings" class="mg-link" type="button">Settings</button>.</p>
+      <ol class="mg-qr-steps wc-small">
+        <li>Scan, pick &ldquo;By team&rdquo;, score your own team.</li>
+        <li>Each phone keeps its own copy: nothing syncs by itself.</li>
+        <li>At the end: Setup &rarr; Export JSON, send it to the presenter, who uses &ldquo;Merge phone exports&rdquo;.</li>
+      </ol>
+    </form>
+  </dialog>
+
+  <div id="toast" class="mg-toast" role="status" aria-live="polite"></div>
+
+  <script src="shared/wc.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="commentary.js"></script>
+  <script src="ai.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
