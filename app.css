@@ -127,6 +127,10 @@ main:focus { outline: none; }
 .mg-hole-title .wc-eyebrow { margin-bottom: 6px; }
 .mg-hole-title .wc-h1 { overflow-wrap: anywhere; }
 .mg-team-pick { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0 10px; }
+.mg-team-pick-big { flex-wrap: wrap; overflow: visible; margin: 14px 0 10px; }
+.mg-team-pick-big .wc-chip { min-height: 52px; padding: 0 20px; font-size: 16px; }
+.mg-send { border-top: 1px solid var(--wc-ink); }
+.mg-send .wc-spread { align-items: center; }
 .mg-team-pick .wc-chip { flex: none; }
 .mg-team-sum { display: grid; justify-items: end; font-size: clamp(30px, 4vw, 52px); font-weight: 700; line-height: 1; }
 .mg-team-sum .wc-mute { font-size: .45em; margin-top: 6px; }
@@ -371,6 +375,8 @@ body.is-board .wc-page { max-width: none; }
 }
 .mg-dialog::backdrop { background: rgba(255, 255, 255, .86); backdrop-filter: blur(3px); }
 .mg-dialog form { display: grid; gap: 12px; }
+.mg-merge-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--wc-ink); }
+.mg-merge-list li { padding: 10px 0; border-bottom: 1px solid var(--wc-line); display: flex; justify-content: space-between; gap: 12px; }
 .mg-dialog fieldset { border: 0; border-top: 1px solid var(--wc-line); margin: 6px 0 0; padding: 16px 0 4px; display: grid; gap: 10px; justify-items: start; }
 .mg-dialog fieldset .wc-btn { min-height: 40px; }
 .mg-dialog legend { padding: 0 10px 0 0; margin: 0; }

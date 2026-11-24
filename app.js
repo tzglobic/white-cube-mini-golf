@@ -377,9 +377,14 @@
             <div class="mg-entry-name"><strong>${esc(t.name)}</strong>${t.players ? `<span class="wc-mute wc-small">${esc(t.players)}</span>` : ''}</div>
             ${stepper(t, ui.hole)}
           </li>`).join('')}</ul>`;
+    } else if (!state.teams.find((t) => t.id === ui.teamId)) {
+      // never guess: a phone must say which team it is scoring for
+      body = `
+        <div class="mg-hole-title"><div><p class="wc-eyebrow">This phone</p><h2 class="wc-h1">Which team are you scoring for?</h2></div></div>
+        <div class="mg-team-pick mg-team-pick-big">${state.teams.map((t) => `<button class="wc-chip" data-act="pick-team" data-id="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+        <p class="wc-small wc-mute">Your choice is remembered on this phone. You can switch at any time.</p>`;
     } else {
-      const team = state.teams.find((t) => t.id === ui.teamId) || state.teams[0];
-      ui.teamId = team.id;
+      const team = state.teams.find((t) => t.id === ui.teamId);
       const l = lineFor(team);
       body = `
         <div class="mg-team-pick">${state.teams.map((t) => `<button class="wc-chip" data-act="pick-team" data-id="${t.id}" aria-pressed="${t.id === team.id}">${esc(t.name)}</button>`).join('')}</div>
@@ -420,6 +425,11 @@
           <button class="wc-btn" data-act="goto" data-view="board">Leaderboard &rarr;</button></div></div>
         ${grid}
         <p class="wc-small wc-mute">Tap a cell to jump to it. ${MINUS} on 1 clears a score. Saved on this device automatically.</p>
+      </section>
+      <section class="wc-section mg-send">
+        <div class="wc-spread"><div><h2 class="wc-h2">Scoring on a phone?</h2>
+          <p class="wc-small wc-mute mg-measure">When you finish (or any time), send your scores to the person running the leaderboard. They open the link on their laptop and your scores are added.</p></div>
+          <button class="wc-btn mg-btn-xl" data-act="send">Send my scores</button></div>
       </section>`;
   }
 
@@ -1058,9 +1068,13 @@
   async function importMerge(files) {
     const loaded = await readFiles(files);
     if (!loaded.length) return;
+    mergeStates(loaded.map((x) => x.st), `${loaded.length} file${loaded.length > 1 ? 's' : ''}`);
+  }
+
+  function mergeStates(list, what) {
     backup('merge');
     let newTeams = 0, filled = 0, clashes = 0, skipped = 0;
-    for (const { st } of loaded) {
+    for (const st of list) {
       if (st.holes.length > state.holes.length) skipped += st.holes.length - state.holes.length;
       for (const it of st.teams) {
         let t = state.teams.find((x) => normName(x.name) === normName(it.name));
@@ -1080,8 +1094,87 @@
       }
     }
     save();
-    toast(`Merged ${loaded.length} file${loaded.length > 1 ? 's' : ''}: ${newTeams} new team${newTeams === 1 ? '' : 's'}, ${filled} scores added${clashes ? `, ${clashes} clash${clashes === 1 ? '' : 'es'} (newest edit won)` : ''}${skipped ? `, extra holes ignored` : ''}.`);
+    ui.board.ranks = null;
+    toast(`Merged ${what}: ${newTeams} new team${newTeams === 1 ? '' : 's'}, ${filled} scores added${clashes ? `, ${clashes} clash${clashes === 1 ? '' : 'es'} (newest edit won)` : ''}${skipped ? `, extra holes ignored` : ''}.`);
     render();
+  }
+
+  /* ---- "Send my scores": a phone shares a link; opening it on the presenter's laptop merges them. ---- */
+  function scoresPack() {
+    const teams = state.teams.filter((t) => t.scores.some((s) => s != null));
+    return { h: state.holes.map((h) => h.par), t: teams.map((t) => [t.name, t.players || '', t.updatedAt || 0, t.scores.map((s) => (s == null ? 0 : s))]) };
+  }
+  function mergeUrl() {
+    const u = new URL(settings.qrUrl || defaultUrl(), location.href);
+    u.search = '';
+    u.searchParams.set('merge', b64u(JSON.stringify(scoresPack())));
+    return u.href;
+  }
+  async function sendScores() {
+    const pack = scoresPack();
+    if (!pack.t.length) return toast('No scores on this phone yet.', 'alert');
+    const url = mergeUrl();
+    const names = pack.t.map((t) => t[0]).join(', ');
+    const text = `Mini golf scores from this phone: ${names}. Open on the scorer's laptop to add them to the leaderboard.`;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Mini Golf scores', text, url }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(url); toast('Link copied. Paste it into a message to the scorer.'); }
+    catch (_) { window.prompt('Copy this link and send it to the scorer:', url); }
+  }
+  function handleMerge() {
+    const raw = params.get('merge');
+    if (!raw) return;
+    const u = new URL(location.href);
+    u.searchParams.delete('merge');
+    history.replaceState(null, '', u);
+    let pack;
+    try { pack = JSON.parse(unb64u(raw)); } catch (_) { return toast('That scores link was damaged. Ask for it to be sent again.', 'alert'); }
+    if (!pack || !Array.isArray(pack.h) || !Array.isArray(pack.t) || !pack.t.length) return;
+    const st = normalize({
+      v: 1,
+      holes: pack.h.map((p) => ({ par: p, name: '' })),
+      teams: pack.t.map(([name, players, at, sc]) => ({ name, players, updatedAt: +at || 0, scores: (sc || []).map((s) => (s ? s : null)) })),
+    });
+    if (!st) return;
+    // An on-page card, not confirm(): in-app browsers (Teams, WhatsApp, Mail) can silently suppress native dialogs.
+    const rows = st.teams.map((t) => `<li><strong>${esc(t.name)}</strong> <span class="wc-mute">${t.scores.filter((s) => s != null).length} of ${st.holes.length} holes</span></li>`).join('');
+    const here = state.teams.length
+      ? `This browser&rsquo;s leaderboard has <strong>${state.teams.length} teams</strong>. New teams are added; empty holes are filled; where both have a score, the most recent edit wins.`
+      : `<strong>This browser has no tournament yet.</strong> If the leaderboard is open in another browser on this laptop, copy this page&rsquo;s link and open it there instead.`;
+    const d = WC.el('dialog', { class: 'mg-dialog mg-merge' });
+    d.innerHTML = `<form method="dialog">
+        <p class="wc-eyebrow">Scores from a phone</p>
+        <h2 class="wc-h2">Add to the leaderboard?</h2>
+        <ul class="mg-merge-list">${rows}</ul>
+        <p class="wc-small">${here}</p>
+        <div class="wc-row mg-gap-s"><button class="wc-btn" value="add">Add scores</button><button class="wc-btn is-ghost" value="no">Not now</button></div>
+      </form>`;
+    document.body.append(d);
+    d.addEventListener('close', () => {
+      if (d.returnValue === 'add') {
+        if (!state.teams.length) state.holes = st.holes.map((h, i) => ({ par: h.par, name: HOLE_NAMES[i] || '' }));
+        mergeStates([st], 'scores from a phone');
+        go('board');
+      }
+      d.remove();
+    });
+    d.showModal();
+  }
+
+  /* Remember which team this phone scores for, so a reload never silently switches teams. */
+  const UKEY = 'wc-minigolf:ui';
+  function saveUi() {
+    const t = state.teams.find((x) => x.id === ui.teamId);
+    writeJSON(UKEY, { teamId: ui.teamId, teamName: t ? t.name : '', scoreMode: ui.scoreMode });
+  }
+  function restoreUi() {
+    const u = readJSON(UKEY);
+    if (!u) return;
+    if (u.scoreMode === 'team' || u.scoreMode === 'hole') ui.scoreMode = u.scoreMode;
+    const t = state.teams.find((x) => x.id === u.teamId) || state.teams.find((x) => normName(x.name) === normName(u.teamName || ''));
+    if (t) ui.teamId = t.id;
   }
 
   function pickFiles({ multiple, onPick }) {
@@ -1124,11 +1217,12 @@
     'holes-step': (el) => setHoleCount(state.holes.length + +el.dataset.d),
     'name-holes': () => { state.holes.forEach((h, i) => { h.name = HOLE_NAMES[i] || h.name; }); save(); rerenderKeepScroll(); },
     'clear-names': () => { state.holes.forEach((h) => { h.name = ''; }); save(); rerenderKeepScroll(); },
-    mode: (el) => { ui.scoreMode = el.dataset.mode; render(); },
+    mode: (el) => { ui.scoreMode = el.dataset.mode; saveUi(); render(); },
+    send: () => sendScores(),
     'pick-hole': (el) => { ui.hole = +el.dataset.i; rerenderKeepScroll(); },
     'prev-hole': () => { ui.hole = Math.max(0, ui.hole - 1); rerenderKeepScroll(); },
     'next-hole': () => { ui.hole = Math.min(state.holes.length - 1, ui.hole + 1); rerenderKeepScroll(); },
-    'pick-team': (el) => { ui.teamId = el.dataset.id; rerenderKeepScroll(); },
+    'pick-team': (el) => { ui.teamId = el.dataset.id; saveUi(); rerenderKeepScroll(); },
     cell: (el) => {
       ui.scoreMode = 'hole'; ui.hole = +el.dataset.i;
       render();
@@ -1344,6 +1438,8 @@
     save();
     ui.view = 'scores';
     ui.scoreMode = 'team';
+    if (!teams.find((t) => t.id === ui.teamId)) ui.teamId = null;
+    saveUi();
     toast(`Ready: ${teams.length} teams, ${holes.length} holes. Pick your team.`);
   }
 
@@ -1397,7 +1493,9 @@
     p: () => go('photo'), f: () => actions.fullscreen(), Escape: () => { if (ui.view === 'board') go('scores'); },
   });
 
+  restoreUi();
   handleJoin();
+  handleMerge();
   loadManifest();
   render();
 })();
